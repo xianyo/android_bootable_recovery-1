@@ -64,6 +64,9 @@ static void
 stop_adbd() {
     property_set("ctl.stop", "adbd");
     set_usb_driver(false);
+
+    //for 4.1 kernel
+    property_set("sys.usb.ffs.ready", "0");
 }
 
 bool is_ro_debuggable() {

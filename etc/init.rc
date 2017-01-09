@@ -35,6 +35,8 @@ on init
     chown root shell /tmp
     chmod 0775 /tmp
 
+    mkdir /config 0500 root root
+
     write /proc/sys/kernel/panic_on_oops 1
     write /proc/sys/vm/max_map_count 1000000
 
@@ -43,6 +45,16 @@ on fs
 
     mkdir /dev/usb-ffs 0770 shell shell
     mkdir /dev/usb-ffs/adb 0770 shell shell
+    # mount the configfs on /config
+    mount configfs none /config mode=0755
+    mkdir /config/usb_gadget/g1
+    mkdir /config/usb_gadget/g1/configs/b.1
+    # mkdir for functions needed
+    # this will call ffs's alloc_inst()
+    mkdir /config/usb_gadget/g1/functions/ffs.adb
+    mkdir /config/usb_gadget/g1/strings/0x409
+    mkdir /config/usb_gadget/g1/configs/b.1/strings/0x409
+    # The mount of functionfs for adb must be put AFTER the mkdir for functions in configfs
     mount functionfs adb /dev/usb-ffs/adb uid=2000,gid=2000
 
 on boot
@@ -118,3 +130,9 @@ on property:service.adb.root=1
     write /sys/class/android_usb/android0/enable 0
     restart adbd
     write /sys/class/android_usb/android0/enable 1
+
+on property:sys.usb.ffs.ready=1
+    rm /config/usb_gadget/g1/configs/b.1/f1
+    # this will call ffs's alloc_func()
+    symlink /config/usb_gadget/g1/functions/ffs.adb /config/usb_gadget/g1/configs/b.1/f1
+    write /config/usb_gadget/g1/UDC ${sys.usb.controller}
