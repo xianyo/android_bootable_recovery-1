@@ -140,6 +140,14 @@ ifeq ($(TARGET_USERIMAGES_USE_EXT4), true)
         #LOCAL_STATIC_LIBRARIES += liblz4-static
     endif
 endif
+
+#ifeq ($(TARGET_USERIMAGES_USE_UBIFS),true)
+    LOCAL_CFLAGS += -DUSE_UBIFS
+    LOCAL_C_INCLUDES +=  system/vold
+    LOCAL_SRC_FILES += ubi.cpp
+    LOCAL_REQUIRED_MODULES := ubiupdatevol
+#endif
+
 ifneq ($(wildcard external/libselinux/Android.mk),)
     TWHAVE_SELINUX := true
 endif

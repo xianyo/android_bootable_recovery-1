@@ -100,6 +100,13 @@ $(inc) : $(inc_dep_file)
 $(call intermediates-dir-for,EXECUTABLES,updater,,,$(TARGET_PREFER_32_BIT))/updater.o : $(inc)
 LOCAL_C_INCLUDES += $(dir $(inc))
 
+#ifeq ($(TARGET_USERIMAGES_USE_UBIFS),true)
+    LOCAL_CFLAGS += -DUSE_UBIFS
+    LOCAL_C_INCLUDES +=  system/vold
+    LOCAL_SRC_FILES += ../ubi.cpp
+    LOCAL_REQUIRED_MODULES := ubiupdatevol
+#endif
+
 inc :=
 inc_dep_file :=
 
