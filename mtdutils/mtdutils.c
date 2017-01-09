@@ -391,6 +391,37 @@ MtdWriteContext *mtd_write_partition(const MtdPartition *partition)
     return ctx;
 }
 
+MtdWriteContext *mtd_write_bootloader_partition(const MtdPartition *partition, off_t offset)
+{
+    MtdWriteContext *ctx = (MtdWriteContext*) malloc(sizeof(MtdWriteContext));
+    if (ctx == NULL) return NULL;
+
+    ctx->bad_block_offsets = NULL;
+    ctx->bad_block_alloc = 0;
+    ctx->bad_block_count = 0;
+
+    ctx->buffer = malloc(partition->erase_size);
+    if (ctx->buffer == NULL) {
+        free(ctx);
+        return NULL;
+    }
+
+    char mtddevname[32];
+    sprintf(mtddevname, "/dev/mtd/mtd%d", partition->device_index);
+    ctx->fd = open(mtddevname, O_RDWR);
+    if (ctx->fd < 0) {
+        free(ctx->buffer);
+        free(ctx);
+        return NULL;
+    }
+    if (TEMP_FAILURE_RETRY(lseek(ctx->fd, offset, SEEK_SET)) != offset)
+        printf("Set offset failed at  0x%08lx (%s)\n",
+                offset, strerror(errno));
+    ctx->partition = partition;
+    ctx->stored = 0;
+    return ctx;
+}
+
 static void add_bad_block_offset(MtdWriteContext *ctx, off_t pos) {
     if (ctx->bad_block_count + 1 > ctx->bad_block_alloc) {
         ctx->bad_block_alloc = (ctx->bad_block_alloc*2) + 1;
